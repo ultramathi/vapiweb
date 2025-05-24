@@ -15,6 +15,27 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_VAPI_API_KEY: process.env.NEXT_PUBLIC_VAPI_API_KEY || '',
   },
+  // Allow external connections
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+    ];
+  },
+  // Server configuration
+  webpack: (config) => {
+    return config;
+  },
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
 };
 
 export default nextConfig;

@@ -1,6 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
+import { ModeToggle } from "@/components/theme-toggle"
+import { ExternalLink, Mic, MicOff, Pizza, Phone, PhoneOff } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function PizzaAssistant() {
   const [vapi, setVapi] = useState(null)
@@ -108,118 +116,108 @@ export default function PizzaAssistant() {
     }
   }
 
+  // Get status badge color
+  const getStatusColor = () => {
+    if (status === "Connected") return "success"
+    if (status === "Error") return "destructive"
+    if (status === "Connecting...") return "warning"
+    return "secondary"
+  }
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        padding: "20px",
-        color: "white",
-      }}
-    >
-      <h1 style={{ marginBottom: "30px" }}>Pizza Voice Assistant</h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <p>Status: {status}</p>
-
-        {isConnected && (
-          <div style={{ marginTop: "10px" }}>
-            <p>{isSpeaking ? "Assistant is speaking" : "Assistant is listening"}</p>
-
-            {/* Simple volume indicator */}
-            <div
-              style={{
-                display: "flex",
-                marginTop: "10px",
-                marginBottom: "10px",
-                gap: "3px",
-              }}
-            >
-              {Array.from({ length: 10 }, (_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: "15px",
-                    height: "15px",
-                    backgroundColor: i / 10 < volumeLevel ? "#3ef07c" : "#444",
-                    borderRadius: "2px",
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <ModeToggle />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" asChild>
+                <a href="https://docs.vapi.ai" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Return to docs</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
-      {errorMessage && (
-        <div
-          style={{
-            backgroundColor: "#f03e3e",
-            padding: "15px",
-            borderRadius: "5px",
-            marginBottom: "20px",
-            maxWidth: "400px",
-            textAlign: "center",
-          }}
-        >
-          <p>{errorMessage}</p>
+      <Card className="w-full max-w-md shadow-lg border-2">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-2">
+            <div className="bg-primary/10 p-3 rounded-full">
+              <Pizza className="h-10 w-10 text-primary" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Pizza Voice Assistant</CardTitle>
+          <CardDescription>Order your favorite pizza with voice commands</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Status</span>
+            <Badge variant={getStatusColor()}>{status}</Badge>
+          </div>
 
-          {errorMessage.includes("payment") && (
-            <a
-              href="https://dashboard.vapi.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                marginTop: "10px",
-                color: "white",
-                textDecoration: "underline",
-              }}
-            >
-              Go to Vapi Dashboard
-            </a>
+          {isConnected && (
+            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-center gap-2">
+                {isSpeaking ? (
+                  <Mic className="h-4 w-4 text-green-500 animate-pulse" />
+                ) : (
+                  <MicOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                <p className="text-sm">{isSpeaking ? "Assistant is speaking" : "Assistant is listening"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Volume Level</p>
+                <Progress value={volumeLevel * 100} className="h-2" />
+              </div>
+            </div>
           )}
-        </div>
-      )}
 
-      <button
-        onClick={isConnected ? endCall : startCall}
-        disabled={isConnecting || !isApiKeyValid}
-        style={{
-          backgroundColor: isConnected ? "#f03e3e" : "white",
-          color: isConnected ? "white" : "black",
-          border: "none",
-          borderRadius: "8px",
-          padding: "12px 24px",
-          fontSize: "16px",
-          fontWeight: "500",
-          cursor: isConnecting || !isApiKeyValid ? "not-allowed" : "pointer",
-          opacity: isConnecting || !isApiKeyValid ? 0.7 : 1,
-        }}
-      >
-        {isConnecting ? "Connecting..." : isConnected ? "End Call" : "Call Pizza Shop"}
-      </button>
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                {errorMessage}
+                {errorMessage.includes("payment") && (
+                  <Button variant="link" className="p-0 h-auto" asChild>
+                    <a
+                      href="https://dashboard.vapi.ai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 mt-2"
+                    >
+                      Go to Vapi Dashboard <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
 
-      <a
-        href="https://docs.vapi.ai"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          position: "fixed",
-          top: "25px",
-          right: "25px",
-          padding: "5px 10px",
-          color: "#fff",
-          textDecoration: "none",
-          borderRadius: "5px",
-          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-        }}
-      >
-        return to docs
-      </a>
+        <CardFooter>
+          <Button 
+            className="w-full"
+            size="lg"
+            variant={isConnected ? "destructive" : "default"}
+            onClick={isConnected ? endCall : startCall}
+            disabled={isConnecting || !isApiKeyValid}
+          >
+            {isConnected ? (
+              <PhoneOff className="mr-2 h-4 w-4" />
+            ) : (
+              <Phone className="mr-2 h-4 w-4" />
+            )}
+            {isConnecting ? "Connecting..." : isConnected ? "End Call" : "Call Pizza Shop"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   )
 }
